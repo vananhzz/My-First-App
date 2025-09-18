@@ -5,8 +5,8 @@ import numpy as np
 from datetime import date
 import plotly.graph_objects as go
 import os
-from transformers import pipeline
-# from openai import OpenAI
+# from transformers import pipeline
+from openai import OpenAI
 
 # Prophet (tùy chọn)
 HAS_PROPHET = True
@@ -149,80 +149,80 @@ def plot_volume(_df: pd.DataFrame):
 
 # =================== CHATBOT TAB (FREE) ===================
 # 🔄 THAY ĐỔI: dùng Hugging Face thay cho OpenAI
-@st.cache_resource
-def load_model():
-    return pipeline("text-generation", model="distilgpt2")
+# @st.cache_resource
+# def load_model():
+#     return pipeline("text-generation", model="distilgpt2")
 
-generator = load_model()
+# generator = load_model()
 
-def chat_tab():
-    st.header("🤖 Chatbot miễn phí (Hugging Face)")
-
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
-
-    for user, bot in st.session_state.chat_history:
-        with st.chat_message("user"):
-            st.markdown(user)
-        with st.chat_message("assistant"):
-            st.markdown(bot)
-
-    prompt = st.chat_input("Nhập câu hỏi (ví dụ: 'Phân tích cổ phiếu AAPL')")
-    if prompt:
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            with st.spinner("Đang xử lý..."):
-                result = generator(prompt, max_length=100, num_return_sequences=1)
-                answer = result[0]["generated_text"]
-
-                st.markdown(answer)
-
-        st.session_state.chat_history.append((prompt, answer))
-
-# =================== CHATGPT TAB ===================
 # def chat_tab():
-#     st.header("🤖 ChatGPT trợ lý phân tích")
+#     st.header("🤖 Chatbot miễn phí (Hugging Face)")
 
-#     api_key = os.getenv("OPENAI_API_KEY")
-#     if not api_key:
-#         st.error("Thiếu OPENAI_API_KEY. Hãy cấu hình biến môi trường trên server.")
-#         return
+#     if "chat_history" not in st.session_state:
+#         st.session_state.chat_history = []
 
-#     client = OpenAI(api_key=api_key)
-
-#     if "chat_messages" not in st.session_state:
-#         st.session_state.chat_messages = [
-#             {"role": "system", "content": "Bạn là chuyên gia phân tích tài chính, trả lời ngắn gọn, rõ ràng."}
-#         ]
-
-#     # hiển thị lịch sử
-#     for m in st.session_state.chat_messages:
-#         if m["role"] == "user":
-#             with st.chat_message("user"):
-#                 st.markdown(m["content"])
-#         elif m["role"] in ("assistant", "system"):
-#             with st.chat_message("assistant"):
-#                 st.markdown(m["content"])
+#     for user, bot in st.session_state.chat_history:
+#         with st.chat_message("user"):
+#             st.markdown(user)
+#         with st.chat_message("assistant"):
+#             st.markdown(bot)
 
 #     prompt = st.chat_input("Nhập câu hỏi (ví dụ: 'Phân tích cổ phiếu AAPL')")
 #     if prompt:
-#         st.session_state.chat_messages.append({"role": "user", "content": prompt})
 #         with st.chat_message("user"):
 #             st.markdown(prompt)
 
 #         with st.chat_message("assistant"):
-#             with st.spinner("Đang suy nghĩ..."):
-#                 resp = client.chat.completions.create(
-#                     model="gpt-4o-mini",
-#                     messages=st.session_state.chat_messages,
-#                     temperature=0.3
-#                 )
-#                 answer = resp.choices[0].message.content
+#             with st.spinner("Đang xử lý..."):
+#                 result = generator(prompt, max_length=100, num_return_sequences=1)
+#                 answer = result[0]["generated_text"]
+
 #                 st.markdown(answer)
 
-#         st.session_state.chat_messages.append({"role": "assistant", "content": answer})
+#         st.session_state.chat_history.append((prompt, answer))
+
+# =================== CHATGPT TAB ===================
+def chat_tab():
+    st.header("🤖 ChatGPT trợ lý phân tích")
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        st.error("Thiếu OPENAI_API_KEY. Hãy cấu hình biến môi trường trên server.")
+        return
+
+    client = OpenAI(api_key=api_key)
+
+    if "chat_messages" not in st.session_state:
+        st.session_state.chat_messages = [
+            {"role": "system", "content": "Bạn là chuyên gia phân tích tài chính, trả lời ngắn gọn, rõ ràng."}
+        ]
+
+    # hiển thị lịch sử
+    for m in st.session_state.chat_messages:
+        if m["role"] == "user":
+            with st.chat_message("user"):
+                st.markdown(m["content"])
+        elif m["role"] in ("assistant", "system"):
+            with st.chat_message("assistant"):
+                st.markdown(m["content"])
+
+    prompt = st.chat_input("Nhập câu hỏi (ví dụ: 'Phân tích cổ phiếu AAPL')")
+    if prompt:
+        st.session_state.chat_messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Đang suy nghĩ..."):
+                resp = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=st.session_state.chat_messages,
+                    temperature=0.3
+                )
+                answer = resp.choices[0].message.content
+                st.markdown(answer)
+
+        st.session_state.chat_messages.append({"role": "assistant", "content": answer})
 
 # =================== PAGE ROUTING ===================
 if page == "📊 Dashboard" and uploaded is not None:
